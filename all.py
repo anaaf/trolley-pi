@@ -1,32 +1,40 @@
-from picamera import PiCamera
-from time import sleep
 import RPi.GPIO as GPIO
 from hx711 import HX711
 import serial
+import time
+import threading
 
 GPIO.setmode(GPIO.BCM)
 
-hx = HX711(dout_pin = 5, pd_sck_pin=6)
-
+hx = HX711(dout_pin=6, pd_sck_pin=5)
 hx.zero()
-
-input('PLACE KNOWN WEIGHT AND ENTER: ')
-reading = hx.get_data_mean(readings=100)
-#weight in grams
-#known_weight = input('Enter the known weight in grams and press Enter: ' )
-#value = float(known_weight)
-
 hx.set_scale_ratio(98.8)
 
-while True:
-    weight = hx.get_weight_mean()
-    
-    weight_kg=weight/1000
-    print (f"Weight in kg: {weight_kg}")
+def read_barcode():
+    try:
+        ser = serial.Serial(port='/dev/ttyAMA0', baudrate=9600, timeout=1)
 
+        while True:
+            if ser.in_waiting > 0:
+                barcode = ser.readline().decode('utf-8', errors='ignore').strip()
+                print(f"Scanned Barcode: {barcode}")
+            time.sleep(0.1)
 
-camera = PiCamera()
-camera.start_preview ()
-sleep(5)
-camera.capture('/home/pi/Desktop/image1.jpg')
-camera.sop_preview
+    except serial.SerialException as e:
+        print("Serial Error:", e)
+    finally:
+        if 'ser' in locals() and ser.is_open:
+            ser.close()
+
+barcode_thread = threading.Thread(target=read_barcode, daemon=True)
+barcode_thread.start()
+
+try:
+    while True:
+        weight_kg = hx.get_weight_mean() / 1000
+        print(f"Weight in kg: {weight_kg}")
+        time.sleep(1)
+
+except KeyboardInterrupt:
+    GPIO.cleanup()
+    print("\nProgram Exited")
