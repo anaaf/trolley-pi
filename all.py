@@ -3,12 +3,13 @@ from hx711 import HX711
 import serial
 import time
 import threading
+from decimal import Decimal, ROUND_HALF_UP
 
 GPIO.setmode(GPIO.BCM)
 
 hx = HX711(dout_pin=6, pd_sck_pin=5)
 hx.zero()
-hx.set_scale_ratio(98.8)
+hx.set_scale_ratio(99.6)
 
 def read_barcode():
     try:
@@ -32,7 +33,9 @@ barcode_thread.start()
 try:
     while True:
         weight_kg = hx.get_weight_mean() / 1000
-        print(f"Weight in kg: {weight_kg}")
+        weight_kg_r = Decimal(str(weight_kg))
+        rounded = weight_kg_r.quantize(Decimal("0.001"), rounding=ROUND_HALF_UP)
+        print(f"Weight in kg updated: {rounded}")
         time.sleep(1)
 
 except KeyboardInterrupt:
