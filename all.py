@@ -4,6 +4,7 @@ import serial
 import time
 import threading
 from decimal import Decimal, ROUND_HALF_UP
+import cv2
 
 GPIO.setmode(GPIO.BCM)
 
@@ -27,8 +28,33 @@ def read_barcode():
         if 'ser' in locals() and ser.is_open:
             ser.close()
 
+def camera_feed():
+    cap = cv2.VideoCapture(0)  # Open default camera
+    if not cap.isOpened():
+        print("Error: Could not open camera")
+        return
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            print("Failed to grab frame")
+            break
+        
+        cv2.imshow("Camera Feed", frame)  # Display the camera feed
+
+        # Exit when 'q' is pressed
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
 barcode_thread = threading.Thread(target=read_barcode, daemon=True)
 barcode_thread.start()
+
+# Start camera feed thread
+camera_thread = threading.Thread(target=camera_feed, daemon=True)
+camera_thread.start()
 
 try:
     while True:
