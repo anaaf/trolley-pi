@@ -1,6 +1,9 @@
 package com.example.trollyinterface.model;
 
-public class CartItem {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class CartItem implements Parcelable {
     private final String id;
     private final String name;
     private final double price;
@@ -18,6 +21,26 @@ public class CartItem {
         this.quantity = quantity;
         this.imageUrl = imageUrl;
     }
+
+    protected CartItem(Parcel in) {
+        id = in.readString();
+        name = in.readString();
+        price = in.readDouble();
+        quantity = in.readInt();
+        imageUrl = in.readString();
+    }
+
+    public static final Creator<CartItem> CREATOR = new Creator<CartItem>() {
+        @Override
+        public CartItem createFromParcel(Parcel in) {
+            return new CartItem(in);
+        }
+
+        @Override
+        public CartItem[] newArray(int size) {
+            return new CartItem[size];
+        }
+    };
 
     public String getId() {
         return id;
@@ -37,6 +60,20 @@ public class CartItem {
 
     public String getImageUrl() {
         return imageUrl;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(id);
+        dest.writeString(name);
+        dest.writeDouble(price);
+        dest.writeInt(quantity);
+        dest.writeString(imageUrl);
     }
 
     @Override
