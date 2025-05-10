@@ -1,0 +1,49 @@
+# Built application files
+/app/build/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Mac OS files
+.DS_Store
+
+# Android Studio/IntelliJ project files
+.idea/
+*.iml
+
+# Gradle files
+.gradle/
+/build/
+/captures/
+.externalNativeBuild/
+.cxx/
+
+# Keystore files (DO NOT commit your release keystore!)
+*.jks
+*.keystore
+voodoo-release.jks
+
+# Log files
+*.log
+
+# Generated files
+app/release/
+app/debug/
+
+# Misc
+*.apk
+*.ap_ 
+
+# Ignore crashlytics and fabric files
+fabric.properties
+crashlytics.properties
+crashlytics-build.properties
+
+# Ignore Google Services JSON (if present)
+google-services.json
+
+# Ignore test result files
+/test-results/
+
+# Ignore local gradle wrapper jar
+/gradle/wrapper/gradle-wrapper.jar
