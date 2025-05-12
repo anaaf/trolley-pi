@@ -2,32 +2,32 @@ package com.example.trollyinterface.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import com.google.gson.annotations.SerializedName;
 
 public class CartItem implements Parcelable {
-    private final String id;
-    private final String name;
+    @SerializedName("productName")
+    private String productName;
+
+    @SerializedName("quantity")
+    private final String quantity;
+
+    @SerializedName("total")
     private final double price;
-    private final int quantity;
-    private final String imageUrl;
 
     public CartItem(String id, String name, double price, int quantity) {
         this(id, name, price, quantity, null);
     }
 
-    public CartItem(String id, String name, double price, int quantity, String imageUrl) {
-        this.id = id;
-        this.name = name;
+    public CartItem(String id, String productName, double price, int quantity, String imageUrl) {
+        this.productName = productName;
         this.price = price;
         this.quantity = quantity;
-        this.imageUrl = imageUrl;
     }
 
     protected CartItem(Parcel in) {
-        id = in.readString();
-        name = in.readString();
+        productName = in.readString();
         price = in.readDouble();
         quantity = in.readInt();
-        imageUrl = in.readString();
     }
 
     public static final Creator<CartItem> CREATOR = new Creator<CartItem>() {
