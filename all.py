@@ -112,13 +112,13 @@ class BarcodeScanner:
         delta = (weight - self.last_weight).copy_abs()
         if delta >= WEIGHT_THRESHOLD_KG:
             logging.info(
-                f"Weight change {delta} kg >= threshold {WEIGHT_THRESHOLD_KG} kg. Posting scan."
+                f"Weight change {delta} from {self.last_weight} kg to {weight} kg >= threshold {WEIGHT_THRESHOLD_KG} kg. Posting scan."
             )
             self._post_scan(barcode, weight)
             self.last_weight = weight
         else:
             logging.info(
-                f"Weight change {delta} kg < threshold {WEIGHT_THRESHOLD_KG} kg; skipping API call."
+                f"Weight change {delta} from {self.last_weight} kg to {weight} kg < threshold {WEIGHT_THRESHOLD_KG} kg; skipping API call."
             )
 
     def _get_weight(self) -> Decimal:
@@ -136,6 +136,7 @@ class BarcodeScanner:
             "weight": float(weight),
         }
         try:
+            logging.info(f"Sending payload: {payload}")
             resp = requests.post(self.api_url, json=payload, timeout=5)
             resp.raise_for_status()
             logging.info(f"API success ({resp.status_code}).")
