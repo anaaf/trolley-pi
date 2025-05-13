@@ -6,6 +6,7 @@ public class AppConfig {
     
     // API Endpoints
     public static final String CART_ENDPOINT = "v1/cart/";
+    public static final String SCAN_ENDPOINT = "v1/scan/";
 
     public static final String CART_UUID = "da4c6590-b0bf-4ee3-b436-fa868188f520";
     

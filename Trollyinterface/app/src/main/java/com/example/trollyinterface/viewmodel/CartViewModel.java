@@ -1,6 +1,8 @@
 package com.example.trollyinterface.viewmodel;
 
 import android.app.Application;
+import android.os.Handler;
+import android.os.Looper;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -12,14 +14,49 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CartViewModel extends AndroidViewModel {
+    private static final long POLL_INTERVAL = 1000; // 1 second in milliseconds
+    
     private final MutableLiveData<List<CartItem>> cartItems = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<BigDecimal> totalAmount = new MutableLiveData<>(BigDecimal.ZERO);
     private final MutableLiveData<String> cartUuid = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private final MutableLiveData<String> error = new MutableLiveData<>();
+    
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final Runnable cartPollRunnable = new Runnable() {
+        @Override
+        public void run() {
+            fetchCartItems();
+            handler.postDelayed(this, POLL_INTERVAL);
+        }
+    };
+
+    private final Runnable scanPollRunnable = new Runnable() {
+        @Override
+        public void run() {
+            scanBarcode();
+            handler.postDelayed(this, POLL_INTERVAL);
+        }
+    };
 
     public CartViewModel(Application application) {
         super(application);
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        stopPolling();
+    }
+
+    public void startPolling() {
+        handler.post(cartPollRunnable);
+        handler.post(scanPollRunnable);
+    }
+
+    public void stopPolling() {
+        handler.removeCallbacks(cartPollRunnable);
+        handler.removeCallbacks(scanPollRunnable);
     }
 
     public LiveData<List<CartItem>> getCartItems() {
@@ -53,7 +90,7 @@ public class CartViewModel extends AndroidViewModel {
                 if (response != null && response.getItems() != null) {
                     cartItems.postValue(response.getItems());
                     totalAmount.postValue(response.getTotalAmount());
-                    cartUuid.postValue(response.getCardUuid());
+                    cartUuid.postValue(response.getCartUuid());
                 } else {
                     error.postValue("Invalid response from server");
                 }
@@ -63,6 +100,24 @@ public class CartViewModel extends AndroidViewModel {
             public void onError(String errorMessage) {
                 isLoading.postValue(false);
                 error.postValue(errorMessage);
+            }
+        });
+    }
+
+    public void scanBarcode() {
+        ApiClient.scanBarcode(new ApiClient.ApiCallback<CartResponse>() {
+            @Override
+            public void onSuccess(CartResponse response) {
+                if (response != null && response.getItems() != null) {
+                    cartItems.postValue(response.getItems());
+                    totalAmount.postValue(response.getTotalAmount());
+                    cartUuid.postValue(response.getCartUuid());
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                // Don't show error for scan failures as they're expected when no barcode is scanned
             }
         });
     }

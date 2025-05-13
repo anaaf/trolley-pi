@@ -58,4 +58,42 @@ public class ApiClient {
             }
         });
     }
+
+    public static void scanBarcode(ApiCallback<CartResponse> callback) {
+        executor.execute(() -> {
+            HttpURLConnection connection = null;
+            try {
+                URL url = new URL(AppConfig.API_BASE_URL + AppConfig.SCAN_ENDPOINT + AppConfig.CART_UUID);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setRequestProperty("Content-Type", "application/json");
+                connection.setConnectTimeout(AppConfig.CONNECTION_TIMEOUT);
+                connection.setReadTimeout(AppConfig.READ_TIMEOUT);
+
+                int responseCode = connection.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    BufferedReader reader = new BufferedReader(
+                            new InputStreamReader(connection.getInputStream()));
+                    StringBuilder response = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        response.append(line);
+                    }
+                    reader.close();
+
+                    CartResponse cartResponse = gson.fromJson(response.toString(), CartResponse.class);
+                    callback.onSuccess(cartResponse);
+                } else {
+                    callback.onError("Error: " + responseCode);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error scanning barcode", e);
+                callback.onError("Network error: " + e.getMessage());
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+        });
+    }
 } 

@@ -15,6 +15,8 @@ import com.example.trollyinterface.model.CartItem;
 import com.example.trollyinterface.ui.adapters.CartAdapter;
 import com.example.trollyinterface.api.ApiClient;
 import com.example.trollyinterface.model.CartResponse;
+import androidx.lifecycle.ViewModelProvider;
+import com.example.trollyinterface.viewmodel.CartViewModel;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -26,8 +28,8 @@ public class CartActivity extends AppCompatActivity {
     private CartAdapter adapter;
     private TextView totalAmountText;
     private Button checkoutButton;
-    private ProgressBar progressBar;
     private List<CartItem> cartItems;
+    private CartViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,85 +38,63 @@ public class CartActivity extends AppCompatActivity {
 
         initializeViews();
         setupRecyclerView();
-        fetchCartData();
+        setupViewModel();
     }
 
     private void initializeViews() {
         recyclerView = findViewById(R.id.cartRecyclerView);
         totalAmountText = findViewById(R.id.totalAmountText);
         checkoutButton = findViewById(R.id.checkoutButton);
-        progressBar = findViewById(R.id.progressBar);
         cartItems = new ArrayList<>();
     }
 
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new CartAdapter(cartItems, this::handleItemDelete);
+        adapter = new CartAdapter(cartItems, productName -> viewModel.updateItemQuantity(productName, 0));
         recyclerView.setAdapter(adapter);
     }
 
-    private void handleItemDelete(String itemId) {
-        Toast.makeText(this, "Please scan item to remove this item", Toast.LENGTH_SHORT).show();
-    }
-
-    private void fetchCartData() {
-        showLoading(true);
+    private void setupViewModel() {
+        viewModel = new ViewModelProvider(this).get(CartViewModel.class);
         
-        ApiClient.getCartItems(new ApiClient.ApiCallback<CartResponse>() {
-            @Override
-            public void onSuccess(CartResponse response) {
-                runOnUiThread(() -> {
-                    showLoading(false);
-                    if (response.getCardUuid() != null) {
-                        updateCartItems(response.getItems(), response.getTotalAmount());
-                    } else {
-                        showError("Could not load cart items");
-                    }
-                });
-            }
+        // Observe ViewModel
+        viewModel.getCartItems().observe(this, this::updateCartItems);
+        viewModel.getError().observe(this, this::showError);
 
-            @Override
-            public void onError(String error) {
-                runOnUiThread(() -> {
-                    showLoading(false);
-                    showError(error);
-                });
-            }
-        });
+        // Start polling for cart updates
+        viewModel.startPolling();
     }
 
-    private void updateCartItems(List<CartItem> items, BigDecimal total) {
-        final List<CartItem> finalItems = items != null ? new ArrayList<>(items) : new ArrayList<>();
-        
-        cartItems.clear();
-        cartItems.addAll(finalItems);
-        adapter.updateItems(cartItems);
-
-        // Calculate and update total amount
-        String totalAmount = total.toString();
-        totalAmountText.setText(String.format(totalAmount));
-
-        // Enable checkout button if there are items
-        checkoutButton.setEnabled(!finalItems.isEmpty());
-        checkoutButton.setOnClickListener(v -> {
-            Intent intent = CheckoutActivity.newIntent(CartActivity.this, totalAmount, finalItems);
-            startActivity(intent);
-        });
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (viewModel != null) {
+            viewModel.stopPolling();
+        }
     }
 
-    private void showLoading(boolean isLoading) {
-        if (isLoading) {
-            progressBar.setVisibility(View.VISIBLE);
-            recyclerView.setVisibility(View.GONE);
-            checkoutButton.setEnabled(false);
-        } else {
-            progressBar.setVisibility(View.GONE);
-            recyclerView.setVisibility(View.VISIBLE);
-            checkoutButton.setEnabled(!cartItems.isEmpty());
+    private void updateCartItems(List<CartItem> items) {
+        if (items != null && totalAmountText != null && checkoutButton != null) {
+            cartItems.clear();
+            cartItems.addAll(items);
+            adapter.updateItems(cartItems);
+            
+            // Update total amount
+            BigDecimal total = BigDecimal.ZERO;
+            for (CartItem item : items) {
+                // Each item's total already includes quantity, so we just add it directly
+                total = total.add(item.getTotal());
+            }
+            totalAmountText.setText(String.format("Total: $%.2f", total.doubleValue()));
+            
+            // Enable/disable checkout button
+            checkoutButton.setEnabled(!items.isEmpty());
         }
     }
 
     private void showError(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+        if (message != null) {
+            Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+        }
     }
 } 

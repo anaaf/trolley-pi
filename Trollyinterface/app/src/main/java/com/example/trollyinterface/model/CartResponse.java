@@ -24,7 +24,7 @@ public class CartResponse {
         return totalAmount;
     }
 
-    public String getCardUuid() {
+    public String getCartUuid() {
         return cartUuid;
     }
 
