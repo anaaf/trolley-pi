@@ -9,7 +9,7 @@ from hx711 import HX711
 import serial
 import requests
 
-# Configuration constants (consider moving to a config file or environment variables)
+# Configuration constants (can move to env/config)
 API_URL = "http://56.228.26.246:8080/v1/cart/barcodeScan"
 CART_UUID = "da4c6590-b0bf-4ee3-b436-fa868188f520"
 TROLLEY_UUID = "0771c388-a12f-4499-afef-cf3401887722"
@@ -18,7 +18,8 @@ BAUDRATE = 9600
 SCALE_RATIO = 99.6
 READ_INTERVAL = 0.1
 WEIGHT_INTERVAL = 1.0
-USE_CONSOLE_INPUT = True  # also capture barcode input from console (e.g., keyboard wedge scanners)
+USE_CONSOLE_INPUT = True  # listen on stdin for keyboard-wedge scanners
+WEIGHT_THRESHOLD_KG = Decimal('0.010')  # 10 grams
 
 
 class BarcodeScanner:
@@ -45,33 +46,37 @@ class BarcodeScanner:
         self.hx.zero()
         self.hx.set_scale_ratio(self.scale_ratio)
 
+        # Track last weight to enforce threshold
+        self.last_weight = self._get_weight()
+        logging.info(f"Initial weight: {self.last_weight} kg")
+
         self.serial_conn = None
 
     def start(self) -> None:
-        """Start barcode reading threads (serial and console)."""
+        """Start threads for barcode scanning."""
         try:
             self._open_serial()
             threading.Thread(target=self._scan_loop, daemon=True).start()
         except Exception:
-            logging.warning("Serial port not available; skipping serial scan.")
+            logging.warning("Serial port unavailable; serial scanning disabled.")
 
         if USE_CONSOLE_INPUT:
             threading.Thread(target=self._console_loop, daemon=True).start()
-            logging.info("Console input thread started.")
+            logging.info("Console scanning enabled.")
 
-        logging.info("Barcode scanner service started.")
+        logging.info("BarcodeScanner service running.")
 
     def _open_serial(self) -> None:
-        """Open serial connection to barcode scanner device."""
+        """Open serial port to barcode device."""
         self.serial_conn = serial.Serial(
             port=self.serial_port,
             baudrate=self.baudrate,
             timeout=1,
         )
-        logging.info(f"Serial port {self.serial_port} opened at {self.baudrate} baud.")
+        logging.info(f"Serial port {self.serial_port}@{self.baudrate} opened.")
 
     def _scan_loop(self) -> None:
-        """Continuously read barcodes from serial and send API requests."""
+        """Continuously read from serial port."""
         while not self._stop_event.is_set():
             try:
                 if self.serial_conn.in_waiting:
@@ -81,12 +86,12 @@ class BarcodeScanner:
                         self._handle_scan(barcode)
                 time.sleep(READ_INTERVAL)
             except serial.SerialException:
-                logging.exception("Serial communication error.")
+                logging.exception("Serial error; stopping serial scan.")
                 break
 
     def _console_loop(self) -> None:
-        """Read barcodes from console input (e.g. keyboard wedge scanners)."""
-        logging.info("Listening for console barcode input...")
+        """Read barcodes from stdin."""
+        logging.info("Listening for console input...")
         while not self._stop_event.is_set():
             try:
                 line = sys.stdin.readline()
@@ -97,24 +102,33 @@ class BarcodeScanner:
                 if barcode:
                     self._handle_scan(barcode)
             except Exception:
-                logging.exception("Error reading console input.")
+                logging.exception("Console input error; stopping console scan.")
                 break
 
     def _handle_scan(self, barcode: str) -> None:
-        """Common handler for any scan source."""
-        logging.info(f"Scanned barcode: *{barcode}*")
+        """Process a barcode scan if weight change exceeds threshold."""
+        logging.info(f"Scanned barcode: {barcode}")
         weight = self._get_weight()
-        logging.info(f"Weight at scan: {weight} kg")
-        self._post_scan(barcode, weight)
+        delta = (weight - self.last_weight).copy_abs()
+        if delta >= WEIGHT_THRESHOLD_KG:
+            logging.info(
+                f"Weight change {delta} kg >= threshold {WEIGHT_THRESHOLD_KG} kg. Posting scan."
+            )
+            self._post_scan(barcode, weight)
+            self.last_weight = weight
+        else:
+            logging.info(
+                f"Weight change {delta} kg < threshold {WEIGHT_THRESHOLD_KG} kg; skipping API call."
+            )
 
     def _get_weight(self) -> Decimal:
-        """Return the current weight in kg, rounded to 3 decimal places."""
-        raw_grams = self.hx.get_weight_mean()
-        kg = raw_grams / 1000
+        """Return current weight in kg (3 decimal places)."""
+        grams = self.hx.get_weight_mean()
+        kg = grams / 1000
         return Decimal(str(kg)).quantize(Decimal('0.001'), ROUND_HALF_UP)
 
     def _post_scan(self, barcode: str, weight: Decimal) -> None:
-        """Send the scan event to the REST API."""
+        """Send scan data to REST API."""
         payload = {
             "cartUuid": self.cart_uuid,
             "trolleyUuid": self.trolley_uuid,
@@ -122,15 +136,14 @@ class BarcodeScanner:
             "weight": float(weight),
         }
         try:
-            logging.info(f"Sending payload: {payload}")
-            response = requests.post(self.api_url, json=payload, timeout=5)
-            response.raise_for_status()
-            logging.info(f"API call succeeded (status {response.status_code}).")
+            resp = requests.post(self.api_url, json=payload, timeout=5)
+            resp.raise_for_status()
+            logging.info(f"API success ({resp.status_code}).")
         except requests.RequestException:
-            logging.exception("Failed to send scan to API.")
+            logging.exception("API request failed.")
 
     def stop(self) -> None:
-        """Cleanly shut down serial connection, threads, and GPIO."""
+        """Stop scanning and clean up resources."""
         self._stop_event.set()
         if self.serial_conn and self.serial_conn.is_open:
             self.serial_conn.close()
@@ -154,11 +167,12 @@ def main() -> None:
     try:
         scanner.start()
         while True:
+            # Periodic weight logging
             weight = scanner._get_weight()
             logging.info(f"Current weight: {weight} kg")
             time.sleep(WEIGHT_INTERVAL)
     except KeyboardInterrupt:
-        logging.info("Keyboard interrupt received; stopping scanner.")
+        logging.info("Shutdown requested; stopping service.")
         scanner.stop()
 
 

@@ -1,0 +1,4 @@
+.PHONY: all update
+all update:
+	git pull
+	python3 all.py
