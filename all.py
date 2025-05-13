@@ -122,6 +122,7 @@ class BarcodeScanner:
             "weight": float(weight),
         }
         try:
+            logging.info(f"Sending payload: {payload}")
             response = requests.post(self.api_url, json=payload, timeout=5)
             response.raise_for_status()
             logging.info(f"API call succeeded (status {response.status_code}).")
