@@ -39,6 +39,7 @@ public class CartActivity extends AppCompatActivity {
         initializeViews();
         setupRecyclerView();
         setupViewModel();
+        setupCheckoutButton();
     }
 
     private void initializeViews() {
@@ -63,6 +64,19 @@ public class CartActivity extends AppCompatActivity {
 
         // Start polling for cart updates
         viewModel.startPolling();
+    }
+
+    private void setupCheckoutButton() {
+        checkoutButton.setOnClickListener(v -> {
+            if (!cartItems.isEmpty()) {
+                Intent intent = new Intent(this, CheckoutActivity.class);
+                intent.putExtra("total_amount", totalAmountText.getText().toString());
+                intent.putParcelableArrayListExtra("cart_items", new ArrayList<>(cartItems));
+                startActivity(intent);
+            } else {
+                Toast.makeText(this, "Cart is empty", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.example.trollyinterface.viewmodel;
 
 import android.app.Application;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import androidx.lifecycle.AndroidViewModel;
@@ -9,6 +10,8 @@ import androidx.lifecycle.MutableLiveData;
 import com.example.trollyinterface.model.CartItem;
 import com.example.trollyinterface.model.CartResponse;
 import com.example.trollyinterface.api.ApiClient;
+import com.example.trollyinterface.ui.screens.CheckoutActivity;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -162,5 +165,22 @@ public class CartViewModel extends AndroidViewModel {
         cartItems.setValue(new ArrayList<>());
         totalAmount.setValue(BigDecimal.ZERO);
         cartUuid.setValue(null);
+    }
+
+    public void checkout() {
+        List<CartItem> currentItems = cartItems.getValue();
+        if (currentItems == null || currentItems.isEmpty()) {
+            error.setValue("Cart is empty");
+            return;
+        }
+
+        // Navigate to checkout screen with current cart data
+        Intent intent = CheckoutActivity.newIntent(
+            getApplication(),
+            totalAmount.getValue().toString(),
+            currentItems
+        );
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        getApplication().startActivity(intent);
     }
 } 
