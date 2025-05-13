@@ -53,8 +53,8 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
         }
 
         void bind(CartItem item) {
-            nameText.setText(item.getName());
-            priceText.setText(String.format("$%.2f", item.getPrice() * item.getQuantity()));
+            nameText.setText(item.getProductName());
+            priceText.setText(String.format("$%s", item.getTotal().toString()));
         }
     }
 } 

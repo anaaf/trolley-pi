@@ -59,9 +59,9 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
         }
 
         void bind(CartItem item) {
-            nameText.setText(item.getName());
-            priceText.setText(String.format("$%.2f x %d", item.getPrice(), item.getQuantity()));
-            deleteButton.setOnClickListener(v -> onDeleteClick.accept(item.getId()));
+            nameText.setText(item.getProductName());
+            priceText.setText(String.format("$%s, %d", item.getTotal().toString(), item.getQuantity()));
+            deleteButton.setOnClickListener(v -> onDeleteClick.accept(item.getProductName()));
         }
     }
 } 

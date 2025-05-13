@@ -21,11 +21,11 @@ public class ApiClient {
         void onError(String error);
     }
 
-    public static void getCartItems(String userId, ApiCallback<CartResponse> callback) {
+    public static void getCartItems(ApiCallback<CartResponse> callback) {
         executor.execute(() -> {
             HttpURLConnection connection = null;
             try {
-                URL url = new URL(AppConfig.API_BASE_URL + AppConfig.CART_ENDPOINT + AppConfig.CART_UUID );
+                URL url = new URL(AppConfig.API_BASE_URL + AppConfig.CART_ENDPOINT + AppConfig.CART_UUID);
                 connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
                 connection.setRequestProperty("Content-Type", "application/json");

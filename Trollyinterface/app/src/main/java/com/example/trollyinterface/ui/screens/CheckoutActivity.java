@@ -33,7 +33,7 @@ public class CheckoutActivity extends AppCompatActivity {
     private Button completePaymentButton;
     private List<CartItem> cartItems;
 
-    public static Intent newIntent(Context context, double totalAmount, List<CartItem> items) {
+    public static Intent newIntent(Context context, String totalAmount, List<CartItem> items) {
         Intent intent = new Intent(context, CheckoutActivity.class);
         intent.putExtra(EXTRA_TOTAL_AMOUNT, totalAmount);
         intent.putParcelableArrayListExtra(EXTRA_CART_ITEMS, new ArrayList<>(items));

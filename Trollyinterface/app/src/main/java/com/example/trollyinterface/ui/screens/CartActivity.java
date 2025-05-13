@@ -15,6 +15,8 @@ import com.example.trollyinterface.model.CartItem;
 import com.example.trollyinterface.ui.adapters.CartAdapter;
 import com.example.trollyinterface.api.ApiClient;
 import com.example.trollyinterface.model.CartResponse;
+
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import com.example.trollyinterface.config.AppConfig;
@@ -58,15 +60,15 @@ public class CartActivity extends AppCompatActivity {
     private void fetchCartData() {
         showLoading(true);
         
-        ApiClient.getCartItems(AppConfig.DEFAULT_USER_ID, new ApiClient.ApiCallback<CartResponse>() {
+        ApiClient.getCartItems(new ApiClient.ApiCallback<CartResponse>() {
             @Override
             public void onSuccess(CartResponse response) {
                 runOnUiThread(() -> {
                     showLoading(false);
-                    if (response.isSuccess()) {
-                        updateCartItems(response.getItems());
+                    if (response.getCardUuid() != null) {
+                        updateCartItems(response.getItems(), response.getTotalAmount());
                     } else {
-                        showError(response.getMessage());
+                        showError("Could not load cart items");
                     }
                 });
             }
@@ -81,7 +83,7 @@ public class CartActivity extends AppCompatActivity {
         });
     }
 
-    private void updateCartItems(List<CartItem> items) {
+    private void updateCartItems(List<CartItem> items, BigDecimal total) {
         final List<CartItem> finalItems = items != null ? new ArrayList<>(items) : new ArrayList<>();
         
         cartItems.clear();
@@ -89,10 +91,8 @@ public class CartActivity extends AppCompatActivity {
         adapter.updateItems(cartItems);
 
         // Calculate and update total amount
-        double totalAmount = finalItems.stream()
-                .mapToDouble(item -> item.getPrice() * item.getQuantity())
-                .sum();
-        totalAmountText.setText(String.format("Total: $%.2f", totalAmount));
+        String totalAmount = total.toString();
+        totalAmountText.setText(String.format(totalAmount));
 
         // Enable checkout button if there are items
         checkoutButton.setEnabled(!finalItems.isEmpty());

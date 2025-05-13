@@ -28,9 +28,9 @@ public class OrderSummaryAdapter extends RecyclerView.Adapter<OrderSummaryAdapte
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         CartItem item = items.get(position);
-        holder.itemName.setText(item.getName());
-        holder.itemQuantity.setText(String.format("x%d", item.getQuantity()));
-        holder.itemPrice.setText(String.format("$%.2f", item.getPrice() * item.getQuantity()));
+        holder.itemName.setText(item.getProductName());
+        holder.itemQuantity.setText(String.format("%d", item.getQuantity()));
+        holder.itemPrice.setText(String.format("$%s", item.getTotal().toString()));
     }
 
     @Override

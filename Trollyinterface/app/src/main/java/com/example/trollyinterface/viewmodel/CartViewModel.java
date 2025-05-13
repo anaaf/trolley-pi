@@ -7,11 +7,14 @@ import androidx.lifecycle.MutableLiveData;
 import com.example.trollyinterface.model.CartItem;
 import com.example.trollyinterface.model.CartResponse;
 import com.example.trollyinterface.api.ApiClient;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CartViewModel extends AndroidViewModel {
     private final MutableLiveData<List<CartItem>> cartItems = new MutableLiveData<>(new ArrayList<>());
+    private final MutableLiveData<BigDecimal> totalAmount = new MutableLiveData<>(BigDecimal.ZERO);
+    private final MutableLiveData<String> cartUuid = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private final MutableLiveData<String> error = new MutableLiveData<>();
 
@@ -21,6 +24,14 @@ public class CartViewModel extends AndroidViewModel {
 
     public LiveData<List<CartItem>> getCartItems() {
         return cartItems;
+    }
+
+    public LiveData<BigDecimal> getTotalAmount() {
+        return totalAmount;
+    }
+
+    public LiveData<String> getCartUuid() {
+        return cartUuid;
     }
 
     public LiveData<Boolean> getIsLoading() {
@@ -39,10 +50,12 @@ public class CartViewModel extends AndroidViewModel {
             @Override
             public void onSuccess(CartResponse response) {
                 isLoading.postValue(false);
-                if (response.isSuccess()) {
+                if (response != null && response.getItems() != null) {
                     cartItems.postValue(response.getItems());
+                    totalAmount.postValue(response.getTotalAmount());
+                    cartUuid.postValue(response.getCardUuid());
                 } else {
-                    error.postValue(response.getMessage());
+                    error.postValue("Invalid response from server");
                 }
             }
 
@@ -74,7 +87,16 @@ public class CartViewModel extends AndroidViewModel {
                 }
             }
             cartItems.setValue(updatedItems);
+            updateTotalAmount(updatedItems);
         }
+    }
+
+    private void updateTotalAmount(List<CartItem> items) {
+        BigDecimal total = BigDecimal.ZERO;
+        for (CartItem item : items) {
+            total = total.add(item.getTotal().multiply(new BigDecimal(item.getQuantity())));
+        }
+        totalAmount.setValue(total);
     }
 
     public void removeItem(String productName) {
@@ -83,5 +105,7 @@ public class CartViewModel extends AndroidViewModel {
 
     public void clearCart() {
         cartItems.setValue(new ArrayList<>());
+        totalAmount.setValue(BigDecimal.ZERO);
+        cartUuid.setValue(null);
     }
 } 
