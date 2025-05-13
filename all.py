@@ -102,7 +102,7 @@ class BarcodeScanner:
 
     def _handle_scan(self, barcode: str) -> None:
         """Common handler for any scan source."""
-        logging.info(f"Scanned barcode: {barcode}")
+        logging.info(f"Scanned barcode: *{barcode}*")
         weight = self._get_weight()
         logging.info(f"Weight at scan: {weight} kg")
         self._post_scan(barcode, weight)
