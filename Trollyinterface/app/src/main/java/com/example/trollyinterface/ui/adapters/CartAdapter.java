@@ -48,19 +48,22 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
 
     class CartViewHolder extends RecyclerView.ViewHolder {
         private final TextView nameText;
+        private final TextView quantityText;
         private final TextView priceText;
         private final ImageButton deleteButton;
 
         CartViewHolder(@NonNull View itemView) {
             super(itemView);
             nameText = itemView.findViewById(R.id.itemNameText);
+            quantityText = itemView.findViewById(R.id.itemQuantityText);
             priceText = itemView.findViewById(R.id.itemPriceText);
             deleteButton = itemView.findViewById(R.id.deleteButton);
         }
 
         void bind(CartItem item) {
             nameText.setText(item.getProductName());
-            priceText.setText(String.format("$%s, %d", item.getTotal().toString(), item.getQuantity()));
+            quantityText.setText(String.format("Quantity: %d", item.getQuantity()));
+            priceText.setText(String.format("Price: $%.2f", item.getTotal().doubleValue()));
             deleteButton.setOnClickListener(v -> onDeleteClick.accept(item.getProductName()));
         }
     }
