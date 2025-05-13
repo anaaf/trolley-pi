@@ -1,43 +1,87 @@
 package com.example.trollyinterface.viewmodel;
 
+import android.app.Application;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
 import com.example.trollyinterface.model.CartItem;
+import com.example.trollyinterface.model.CartResponse;
+import com.example.trollyinterface.api.ApiClient;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CartViewModel extends ViewModel {
+public class CartViewModel extends AndroidViewModel {
     private final MutableLiveData<List<CartItem>> cartItems = new MutableLiveData<>(new ArrayList<>());
-    private final MutableLiveData<Double> totalAmount = new MutableLiveData<>(0.0);
+    private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
+    private final MutableLiveData<String> error = new MutableLiveData<>();
+
+    public CartViewModel(Application application) {
+        super(application);
+    }
 
     public LiveData<List<CartItem>> getCartItems() {
         return cartItems;
     }
 
-    public LiveData<Double> getTotalAmount() {
-        return totalAmount;
+    public LiveData<Boolean> getIsLoading() {
+        return isLoading;
     }
 
-    public void addItem(CartItem item) {
-        List<CartItem> currentItems = new ArrayList<>(cartItems.getValue());
-        currentItems.add(item);
-        cartItems.setValue(currentItems);
-        updateTotalAmount();
+    public LiveData<String> getError() {
+        return error;
     }
 
-    public void removeItem(String itemId) {
-        List<CartItem> currentItems = new ArrayList<>(cartItems.getValue());
-        currentItems.removeIf(item -> item.getId().equals(itemId));
-        cartItems.setValue(currentItems);
-        updateTotalAmount();
+    public void fetchCartItems() {
+        isLoading.setValue(true);
+        error.setValue(null);
+
+        ApiClient.getCartItems(new ApiClient.ApiCallback<CartResponse>() {
+            @Override
+            public void onSuccess(CartResponse response) {
+                isLoading.postValue(false);
+                if (response.isSuccess()) {
+                    cartItems.postValue(response.getItems());
+                } else {
+                    error.postValue(response.getMessage());
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                isLoading.postValue(false);
+                error.postValue(errorMessage);
+            }
+        });
     }
 
-    private void updateTotalAmount() {
-        double total = 0.0;
-        for (CartItem item : cartItems.getValue()) {
-            total += item.getPrice() * item.getQuantity();
+    public void updateItemQuantity(String productName, int newQuantity) {
+        List<CartItem> currentItems = cartItems.getValue();
+        if (currentItems != null) {
+            List<CartItem> updatedItems = new ArrayList<>(currentItems);
+            for (int i = 0; i < updatedItems.size(); i++) {
+                CartItem item = updatedItems.get(i);
+                if (item.getProductName().equals(productName)) {
+                    if (newQuantity <= 0) {
+                        updatedItems.remove(i);
+                    } else {
+                        updatedItems.set(i, new CartItem(
+                            item.getProductName(),
+                            item.getTotal(),
+                            newQuantity
+                        ));
+                    }
+                    break;
+                }
+            }
+            cartItems.setValue(updatedItems);
         }
-        totalAmount.setValue(total);
+    }
+
+    public void removeItem(String productName) {
+        updateItemQuantity(productName, 0);
+    }
+
+    public void clearCart() {
+        cartItems.setValue(new ArrayList<>());
     }
 } 

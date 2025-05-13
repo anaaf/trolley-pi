@@ -3,30 +3,27 @@ package com.example.trollyinterface.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 import com.google.gson.annotations.SerializedName;
+import java.math.BigDecimal;
 
 public class CartItem implements Parcelable {
     @SerializedName("productName")
-    private String productName;
+    private final String productName;
 
     @SerializedName("quantity")
-    private final String quantity;
+    private final int quantity;
 
     @SerializedName("total")
-    private final double price;
+    private final BigDecimal total;
 
-    public CartItem(String id, String name, double price, int quantity) {
-        this(id, name, price, quantity, null);
-    }
-
-    public CartItem(String id, String productName, double price, int quantity, String imageUrl) {
+    public CartItem(String productName, BigDecimal total, int quantity) {
         this.productName = productName;
-        this.price = price;
+        this.total = total;
         this.quantity = quantity;
     }
 
     protected CartItem(Parcel in) {
         productName = in.readString();
-        price = in.readDouble();
+        total = new BigDecimal(in.readString());
         quantity = in.readInt();
     }
 
@@ -42,24 +39,16 @@ public class CartItem implements Parcelable {
         }
     };
 
-    public String getId() {
-        return id;
+    public String getProductName() {
+        return productName;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public double getPrice() {
-        return price;
+    public BigDecimal getTotal() {
+        return total;
     }
 
     public int getQuantity() {
         return quantity;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
     }
 
     @Override
@@ -69,11 +58,9 @@ public class CartItem implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(id);
-        dest.writeString(name);
-        dest.writeDouble(price);
+        dest.writeString(productName);
+        dest.writeString(total.toString());
         dest.writeInt(quantity);
-        dest.writeString(imageUrl);
     }
 
     @Override
@@ -81,32 +68,26 @@ public class CartItem implements Parcelable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CartItem cartItem = (CartItem) o;
-        return Double.compare(cartItem.price, price) == 0 &&
-               quantity == cartItem.quantity &&
-               id.equals(cartItem.id) &&
-               name.equals(cartItem.name) &&
-               (imageUrl == null ? cartItem.imageUrl == null : imageUrl.equals(cartItem.imageUrl));
+        return quantity == cartItem.quantity &&
+               productName.equals(cartItem.productName) &&
+               total.compareTo(cartItem.total) == 0;
     }
 
     @Override
     public int hashCode() {
         int result = 17;
-        result = 31 * result + id.hashCode();
-        result = 31 * result + name.hashCode();
-        result = 31 * result + (int) (Double.doubleToLongBits(price) ^ (Double.doubleToLongBits(price) >>> 32));
+        result = 31 * result + productName.hashCode();
+        result = 31 * result + total.hashCode();
         result = 31 * result + quantity;
-        result = 31 * result + (imageUrl != null ? imageUrl.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
         return "CartItem{" +
-               "id='" + id + '\'' +
-               ", name='" + name + '\'' +
-               ", price=" + price +
+               "productName='" + productName + '\'' +
+               ", total=" + total +
                ", quantity=" + quantity +
-               ", imageUrl='" + imageUrl + '\'' +
                '}';
     }
 } 

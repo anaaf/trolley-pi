@@ -1,11 +1,14 @@
 package com.example.trollyinterface.model;
 
 import com.google.gson.annotations.SerializedName;
+
+import java.math.BigDecimal;
 import java.util.List;
+
 
 public class CartResponse {
     @SerializedName("cartUuid")
-    private boolean cartUuid;
+    private String cartUuid;
 
     @SerializedName("totalAmount")
     private BigDecimal totalAmount;
@@ -13,15 +16,16 @@ public class CartResponse {
     @SerializedName("cartItems")
     private List<CartItem> items;
 
-    public boolean isSuccess() {
-        return success;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
     public List<CartItem> getItems() {
         return items;
     }
+
+    public BigDecimal getTotalAmount() {
+        return totalAmount;
+    }
+
+    public String getCardUuid() {
+        return cartUuid;
+    }
+
 } 
