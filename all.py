@@ -67,7 +67,7 @@ class BarcodeScanner:
                 if self.serial.in_waiting:
                     raw = self.serial.readline()
                     barcode = raw.decode('utf-8', errors='ignore').strip()
-
+                    print("barcode: ")
                     if barcode:
                         logging.info(f"Scanned barcode: {barcode}")
                         weight = self._get_weight()
