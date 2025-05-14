@@ -8,4 +8,5 @@ services:
     tty: true
     stdin_open: true    # <-- allows STDIN to stay open
     command: python -m src.main
+    network_mode: "host"  # Use host network mode to access external IPs
 
