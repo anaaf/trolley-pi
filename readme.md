@@ -1,1 +1,3 @@
-echo "1234567890" | docker exec -i $(docker-compose ps -q scanner) tee /dev/stdin
+
+Provide Dummy Barcode & run the script
+echo "1234567890" | make run-docker
