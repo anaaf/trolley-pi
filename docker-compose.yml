@@ -1,0 +1,7 @@
+version: '3.8'
+services:
+  scanner:
+    build: .
+    volumes:
+      - .:/app       # so code changes reflect immediately
+    tty: true

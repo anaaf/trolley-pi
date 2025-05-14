@@ -4,6 +4,18 @@ import time
 import sys
 from decimal import Decimal, ROUND_HALF_UP
 
+USE_MOCK = os.getenv("USE_MOCK") == "1"
+
+if USE_MOCK:
+    # Point at our local stub modules
+    from mocks.GPIO import GPIO
+    from mocks.hx711 import HX711
+    import mocks.serial as serial
+else:
+    import RPi.GPIO as GPIO
+    from hx711 import HX711
+    import serial
+
 import RPi.GPIO as GPIO
 from hx711 import HX711
 import serial
