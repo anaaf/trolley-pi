@@ -4,4 +4,4 @@ all:
 	python3 all.py
 
 run-docker:
-	docker-compose run --rm -T scanner
+	docker-compose run --rm -T scanner python -m src.main

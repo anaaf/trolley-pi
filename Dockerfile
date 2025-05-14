@@ -7,10 +7,11 @@ COPY Makefile .
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy only the src directory
+# Copy the src directory and mocks
 COPY src/ src/
 
 # Enable mock mode in container
 ENV USE_MOCK=1
+ENV PYTHONPATH=/app
 
-CMD ["python", "src/main.py"]
+CMD ["python", "-m", "src.main"]
