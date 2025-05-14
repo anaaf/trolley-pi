@@ -3,24 +3,20 @@ import threading
 import time
 import sys
 from decimal import Decimal, ROUND_HALF_UP
+import os
+import requests
 
 USE_MOCK = os.getenv("USE_MOCK") == "1"
 
 if USE_MOCK:
     # Point at our local stub modules
-    from mocks.GPIO import GPIO
+    import mocks.GPIO as GPIO
     from mocks.hx711 import HX711
     import mocks.serial as serial
 else:
     import RPi.GPIO as GPIO
     from hx711 import HX711
     import serial
-
-import RPi.GPIO as GPIO
-from hx711 import HX711
-import serial
-import requests
-
 # Configuration constants (can move to env/config)
 API_URL = "http://56.228.26.246:8080/v1/cart/barcodeScan"
 CART_UUID = "da4c6590-b0bf-4ee3-b436-fa868188f520"

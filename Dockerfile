@@ -12,4 +12,4 @@ COPY . .
 # Enable mock mode in container
 ENV USE_MOCK=1
 
-CMD ["python", "scanner.py"]
+CMD ["python", "all.py"]

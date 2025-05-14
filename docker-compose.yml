@@ -1,7 +1,8 @@
-version: '3.8'
 services:
   scanner:
     build: .
     volumes:
       - .:/app       # so code changes reflect immediately
     tty: true
+    stdin_open: true    # <-- allows STDIN to stay open
+
