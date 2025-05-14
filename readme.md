@@ -40,8 +40,12 @@ A Raspberry Pi-based smart shopping trolley system that combines barcode scannin
    cd trolley-pi
    ```
 
-2. Run using Docker Compose:
+2. Build and run using Docker Compose:
    ```bash
+   # First time setup
+   docker-compose build
+   
+   # Run the application
    make run-docker
    ```
 
