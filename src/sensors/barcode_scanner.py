@@ -95,6 +95,7 @@ class BarcodeScanner:
             "cartUuid": self.cart_uuid,
             "trolleyUuid": self.trolley_uuid,
             "barcodeNumber": barcode,
+            "weight": 0.350
         }
         try:
             logging.info(f"Sending payload: {payload}")
