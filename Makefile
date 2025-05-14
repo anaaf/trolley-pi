@@ -1,0 +1,7 @@
+.PHONY: all update
+all:
+	git pull
+	python3 all.py
+
+run-docker:
+	docker-compose run --rm -T scanner
