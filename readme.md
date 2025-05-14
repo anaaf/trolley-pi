@@ -64,7 +64,7 @@ A Raspberry Pi-based smart shopping trolley system that combines barcode scannin
 
 3. Run the application:
    ```bash
-   python3 all.py
+   python3 src/main.py
    ```
 
 ### Testing with Dummy Barcodes
@@ -78,7 +78,7 @@ You can test the system by passing dummy barcodes through the console input. Her
 
 2. Using direct Python execution:
    ```bash
-   echo "1234567890" | python3 all.py
+   echo "1234567890" | python3 src/main.py
    ```
 
 The system will process the barcode and attempt to send it to the API endpoint. Make sure you have configured the correct API_URL and other environment variables before testing.
@@ -104,11 +104,8 @@ For development and testing, you can use mock mode by setting `USE_MOCK=1`. This
 
 ## Project Structure
 
-- `all.py`: Main application file
-- `barcode.py`: Barcode scanning functionality
-- `gm805.py`: GM805 barcode scanner interface
-- `load cell.py`: Load cell interface
-- `mocks/`: Mock implementations for development
+- `src/main.py`: Main application file
+- `src/mocks/`: Mock implementations for development
 - `Dockerfile`: Container configuration
 - `docker-compose.yml`: Docker Compose configuration
 - `requirements.txt`: Python dependencies
