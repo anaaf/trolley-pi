@@ -1,7 +1,7 @@
 import logging
 import time
 
-from src.services.trolley import Trolley
+from src.core.trolley import Trolley
 from src.config import config
 
 def setup_logging() -> None:

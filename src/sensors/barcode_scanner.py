@@ -7,8 +7,8 @@ from typing import Optional
 import serial
 
 from src.config import config
-from src.queue.event_queue import EventQueue
-from src.events import BarcodeScanEvent
+from src.libs.queue.event_queue import EventQueue
+from src.core.events import BarcodeScanEvent
 
 class BarcodeScanner:
     def __init__(

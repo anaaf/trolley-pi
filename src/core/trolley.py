@@ -7,8 +7,7 @@ from typing import Optional
 from src.sensors.barcode_scanner import BarcodeScanner
 from src.sensors.weight_sensor import WeightSensor
 from src.config import config
-from src.queue.event_queue import EventQueue
-from src.events import BarcodeScanEvent, ScanEvent
+from src.core.events import BarcodeScanEvent, ScanEvent
 
 class Trolley:
     def __init__(
