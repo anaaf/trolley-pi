@@ -1,68 +1,40 @@
 import logging
 import threading
 import time
-import requests
 from typing import Optional
+from decimal import Decimal
 
-from src.sensors.barcode_scanner import BarcodeScanner
-from src.sensors.weight_sensor import WeightSensor
-from src.config import config
 from src.core.events import BarcodeScanEvent, ScanEvent
+from src.core.sensors import BarcodeScanner, WeightSensor
+from src.api.client import APIClient
 
 class Trolley:
     def __init__(
         self,
         cart_uuid: str,
         trolley_uuid: str,
-        api_url: str,
-        serial_port: str = config.SERIAL_PORT,
-        baudrate: int = config.BAUDRATE,
+        api_client: APIClient,
+        barcode_scanner: BarcodeScanner,
+        weight_sensor: WeightSensor,
     ):
+        """Initialize the trolley with its dependencies."""
         self.cart_uuid = cart_uuid
         self.trolley_uuid = trolley_uuid
-        self.api_url = api_url
+        self.api_client = api_client
+        self.barcode_scanner = barcode_scanner
+        self.weight_sensor = weight_sensor
         self._stop_event = threading.Event()
-        
-        # Initialize sensors
-        self.barcode_scanner = BarcodeScanner(
-            cart_uuid=cart_uuid,
-            trolley_uuid=trolley_uuid,
-            api_url=api_url,
-            serial_port=serial_port,
-            baudrate=baudrate,
-        )
-        self.weight_sensor = WeightSensor()
+        self.event_thread: Optional[threading.Thread] = None
 
     def start(self):
-        """Start all services and processing threads."""
-        logging.debug("Starting trolley services...")
-        
-        # Start sensors
-        logging.debug("Starting barcode scanner...")
+        """Start the trolley and all its components."""
+        logging.info("Starting trolley...")
         self.barcode_scanner.start()
-        logging.debug("Starting weight sensor...")
         self.weight_sensor.start()
         
         # Start event processing thread
-        try:
-            logging.debug("Creating event processing thread...")
-            self.event_thread = threading.Thread(
-                target=self._process_events,
-                daemon=True,
-                name="event_processor"
-            )
-            self.event_thread.start()
-            logging.debug(f"Event processing thread started: {self.event_thread.name} (daemon={self.event_thread.daemon})")
-            
-            # Verify thread is alive
-            if not self.event_thread.is_alive():
-                logging.error("Event processing thread failed to start")
-                raise RuntimeError("Event processing thread failed to start")
-                
-        except Exception as e:
-            logging.exception("Failed to start event processing thread")
-            raise
-        
+        self.event_thread = threading.Thread(target=self._process_events)
+        self.event_thread.start()
         logging.info("Trolley started")
 
     def _process_events(self):
@@ -89,7 +61,13 @@ class Trolley:
                     logging.debug(f"Created scan event with weight: {scan_event}")
                     
                     # Send to API
-                    if self._send_to_api(scan_event):
+                    if self.api_client.send_scan(
+                        cart_uuid=self.cart_uuid,
+                        trolley_uuid=self.trolley_uuid,
+                        barcode=scan_event.barcode,
+                        weight=scan_event.weight,
+                        timestamp=scan_event.timestamp
+                    ):
                         logging.debug("API call successful")
                         self.barcode_scanner.get_event_queue().mark_processed()
                     else:
@@ -103,30 +81,11 @@ class Trolley:
             logging.exception("Fatal error in event processing thread")
             raise
 
-    def _send_to_api(self, event: ScanEvent) -> bool:
-        """Send event data to API. Returns True if successful."""
-        payload = {
-            "cartUuid": self.cart_uuid,
-            "trolleyUuid": self.trolley_uuid,
-            "barcodeNumber": event.barcode,
-            "weight": float(event.weight) if event.weight is not None else 0.0,
-            "timestamp": event.timestamp
-        }
-        try:
-            logging.info(f"Sending payload: {payload}")
-            resp = requests.post(self.api_url, json=payload, timeout=5)
-            resp.raise_for_status()
-            logging.info(f"API success ({resp.status_code}).")
-            return True
-        except requests.RequestException:
-            logging.exception("API request failed.")
-            return False
-
     def stop(self):
         """Stop all services and clean up."""
         logging.debug("Stopping trolley...")
         self._stop_event.set()
-        if hasattr(self, 'event_thread'):
+        if self.event_thread:
             logging.debug(f"Waiting for event thread {self.event_thread.name} to stop...")
             self.event_thread.join(timeout=5)
         self.barcode_scanner.stop()

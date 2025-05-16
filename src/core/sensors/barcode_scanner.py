@@ -102,9 +102,8 @@ class BarcodeScanner:
         return self.event_queue
 
     def stop(self) -> None:
-        """Stop scanning and clean up resources."""
+        """Stop the scanner and clean up resources."""
         self._stop_event.set()
-        self.event_queue.stop()
-        if self.serial_conn and self.serial_conn.is_open:
+        if self.serial_conn:
             self.serial_conn.close()
-            logging.info("Serial port closed.") 
+        logging.info("BarcodeScanner stopped") 
