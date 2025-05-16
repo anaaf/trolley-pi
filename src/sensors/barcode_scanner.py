@@ -4,14 +4,11 @@ import threading
 import time
 from typing import Optional
 
-import requests
+import serial
 
 from src.config import config
-
-if config.USE_MOCK:
-    from src.mocks import serial
-else:
-    import serial
+from src.queue.event_queue import EventQueue
+from src.events import BarcodeScanEvent
 
 class BarcodeScanner:
     def __init__(
@@ -30,6 +27,7 @@ class BarcodeScanner:
         self.baudrate = baudrate
         self._stop_event = threading.Event()
         self.serial_conn: Optional[serial.Serial] = None
+        self.event_queue = EventQueue[BarcodeScanEvent](name="barcode_scanner_events")
 
     def start(self) -> None:
         """Start threads for barcode scanning."""
@@ -86,28 +84,27 @@ class BarcodeScanner:
 
     def _handle_scan(self, barcode: str) -> None:
         """Process a barcode scan."""
-        logging.info(f"Scanned barcode: {barcode}")
-        self._post_scan(barcode)
-
-    def _post_scan(self, barcode: str) -> None:
-        """Send scan data to REST API."""
-        payload = {
-            "cartUuid": self.cart_uuid,
-            "trolleyUuid": self.trolley_uuid,
-            "barcodeNumber": barcode,
-            "weight": 0.350
-        }
+        logging.debug(f"Handling barcode scan: {barcode}")
         try:
-            logging.info(f"Sending payload: {payload}")
-            resp = requests.post(self.api_url, json=payload, timeout=5)
-            resp.raise_for_status()
-            logging.info(f"API success ({resp.status_code}).")
-        except requests.RequestException:
-            logging.exception("API request failed.")
+            event = BarcodeScanEvent(
+                barcode=barcode,
+                timestamp=time.time()
+            )
+            logging.debug(f"Created barcode event: {event}")
+            self.event_queue.put(event)
+            logging.debug("Event added to queue successfully")
+        except Exception as e:
+            logging.exception("Failed to handle barcode scan")
+            raise
+
+    def get_event_queue(self) -> EventQueue[BarcodeScanEvent]:
+        """Get the event queue for this scanner."""
+        return self.event_queue
 
     def stop(self) -> None:
         """Stop scanning and clean up resources."""
         self._stop_event.set()
+        self.event_queue.stop()
         if self.serial_conn and self.serial_conn.is_open:
             self.serial_conn.close()
             logging.info("Serial port closed.") 

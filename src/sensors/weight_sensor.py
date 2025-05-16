@@ -1,11 +1,13 @@
 import logging
 from decimal import Decimal, ROUND_HALF_UP
+import time
 from typing import Optional
+import threading
 
 from src.config import config
 
 if config.USE_MOCK:
-    from src.mocks import HX711, GPIO
+    from src.libs.mocks import HX711, GPIO
 else:
     from hx711 import HX711
     import RPi.GPIO as GPIO
@@ -16,7 +18,25 @@ class WeightSensor:
         self._setup_gpio()
         self._setup_scale(dout_pin, pd_sck_pin)
         self.last_weight: Optional[Decimal] = None
+        self._stop_event = threading.Event()
         self._initialize_weight()
+    
+    def start(self):
+        """Start weight monitoring in a background thread."""
+        threading.Thread(target=self._monitor_weight, daemon=True).start()
+        logging.info("Weight sensor started")
+
+    def _monitor_weight(self):
+        """Monitor weight in background thread."""
+        while not self._stop_event.is_set():
+            weight = self.get_weight()
+            logging.info(f"Current weight: {weight} kg")
+            time.sleep(config.WEIGHT_INTERVAL)
+
+    def stop(self):
+        """Stop weight monitoring."""
+        self._stop_event.set()
+        self.cleanup()
 
     def _setup_gpio(self) -> None:
         """Configure GPIO mode."""
