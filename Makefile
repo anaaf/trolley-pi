@@ -8,7 +8,7 @@ run-docker:
 
 # run directly on PI
 run:
-	export USE_MOCK=1 && PYTHONPATH=. python3 src/main.py
+	export USE_MOCK=0 && PYTHONPATH=. python3 src/main.py
 
 # run directly on laptop using Mocks
 run-with-mock:
