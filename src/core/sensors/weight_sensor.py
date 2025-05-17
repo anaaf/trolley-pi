@@ -1,7 +1,7 @@
 import logging
 from decimal import Decimal, ROUND_HALF_UP
 import time
-from typing import Optional
+from typing import Optional, Callable
 import threading
 
 from src.config import config
@@ -19,6 +19,7 @@ class WeightSensor:
         self._setup_scale(dout_pin, pd_sck_pin)
         self.last_weight: Optional[Decimal] = None
         self._stop_event = threading.Event()
+        self._weight_change_callback: Optional[Callable[[Decimal, Decimal], None]] = None
         self._initialize_weight()
     
     def start(self):
@@ -30,6 +31,8 @@ class WeightSensor:
         """Monitor weight in background thread."""
         while not self._stop_event.is_set():
             weight = self.get_weight()
+            if self.has_significant_weight_change() and self._weight_change_callback:
+                self._weight_change_callback(self.last_weight, weight)
             logging.info(f"Current weight: {weight} kg")
             time.sleep(config.WEIGHT_INTERVAL)
 
@@ -80,6 +83,14 @@ class WeightSensor:
             )
         
         return has_change
+
+    def on_weight_change(self, callback: Callable[[Decimal, Decimal], None]) -> None:
+        """Register a callback function to be called when significant weight changes occur.
+        
+        Args:
+            callback: Function that takes (old_weight, new_weight) as arguments
+        """
+        self._weight_change_callback = callback
 
     def cleanup(self) -> None:
         """Clean up GPIO resources."""

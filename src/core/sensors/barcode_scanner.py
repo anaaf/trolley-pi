@@ -2,12 +2,11 @@ import logging
 import sys
 import threading
 import time
-from typing import Optional
+from typing import Optional, Callable
 
 import serial
 
 from src.config import config
-from src.libs.queue.event_queue import EventQueue
 from src.core.events import BarcodeScanEvent
 
 class BarcodeScanner:
@@ -27,7 +26,11 @@ class BarcodeScanner:
         self.baudrate = baudrate
         self._stop_event = threading.Event()
         self.serial_conn: Optional[serial.Serial] = None
-        self.event_queue = EventQueue[BarcodeScanEvent](name="barcode_scanner_events")
+        self._scan_callback: Optional[Callable[[BarcodeScanEvent], None]] = None
+
+    def on_scan(self, callback: Callable[[BarcodeScanEvent], None]) -> None:
+        """Register a callback for barcode scan events."""
+        self._scan_callback = callback
 
     def start(self) -> None:
         """Start threads for barcode scanning."""
@@ -91,15 +94,13 @@ class BarcodeScanner:
                 timestamp=time.time()
             )
             logging.debug(f"Created barcode event: {event}")
-            self.event_queue.put(event)
-            logging.debug("Event added to queue successfully")
+            if self._scan_callback:
+                self._scan_callback(event)
+            else:
+                logging.warning("No scan callback registered")
         except Exception as e:
             logging.exception("Failed to handle barcode scan")
             raise
-
-    def get_event_queue(self) -> EventQueue[BarcodeScanEvent]:
-        """Get the event queue for this scanner."""
-        return self.event_queue
 
     def stop(self) -> None:
         """Stop the scanner and clean up resources."""
