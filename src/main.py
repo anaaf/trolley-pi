@@ -17,7 +17,7 @@ def setup_logging() -> None:
 def main() -> None:
     """Main entry point for the application."""
     setup_logging()
-    logging.info("Starting Trolley...")
+    logging.info("Starting Trolley... Welcome PI")
 
     # Initialize components
     api_client = MockAPIClient(config.API_URL) if config.USE_MOCK else APIClient(config.API_URL)
