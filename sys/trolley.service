@@ -7,7 +7,7 @@ Wants=network-online.target
 [Service]
 Type=simple
 User=taha
-WorkingDirectory=/home/pi/trolley-pi
+WorkingDirectory=/home/taha/trolley-pi
 # before starting, grab the latest code
 ExecStartPre=git pull --ff-only origin main
 # then launch—either bare python or docker-compose
