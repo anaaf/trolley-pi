@@ -17,7 +17,7 @@ class WeightSensor:
         """Initialize the weight sensor with specified GPIO pins."""
         self._setup_gpio()
         self._setup_scale(dout_pin, pd_sck_pin)
-        self.last_weight: Optional[Decimal] = None
+        self.last_weight: Optional[Decimal] = 0
         self._stop_event = threading.Event()
         self._weight_change_callback: Optional[Callable[[Decimal, Decimal], None]] = None
         self._initialize_weight()
@@ -34,6 +34,7 @@ class WeightSensor:
             logging.info(f"Current weight: {weight} kg")
             if self.has_significant_weight_change() and self._weight_change_callback:
                 self._weight_change_callback(self.last_weight, weight)
+                self.last_weight = weight
             time.sleep(config.WEIGHT_INTERVAL)
 
     def stop(self):
@@ -62,25 +63,20 @@ class WeightSensor:
         kg = grams / 1000
         return Decimal(str(kg)).quantize(Decimal('0.001'), ROUND_HALF_UP)
 
-    def has_significant_weight_change(self) -> bool:
+    def has_significant_weight_change(self, last_weight, current_weight) -> bool:
         """Check if weight change exceeds threshold."""
-        current_weight = self.get_weight()
-        if self.last_weight is None:
-            self.last_weight = current_weight
-            return False
 
-        delta = (current_weight - self.last_weight).copy_abs()
+        delta = (current_weight - last_weight).copy_abs()
         has_change = delta >= config.WEIGHT_THRESHOLD_KG
         
         if has_change:
             logging.info(
-                f"Weight change {delta} from {self.last_weight} kg to {current_weight} kg >= threshold {config.WEIGHT_THRESHOLD_KG} kg"
+                f"Weight change {delta} from {last_weight} kg to {current_weight} kg >= threshold {config.WEIGHT_THRESHOLD_KG} kg"
             )
-            self.last_weight = current_weight
-        else:
-            logging.info(
-                f"Weight change {delta} from {self.last_weight} kg to {current_weight} kg < threshold {config.WEIGHT_THRESHOLD_KG} kg"
-            )
+        # else:
+        #     logging.info(
+        #         f"Weight change {delta} from {last_weight} kg to {current_weight} kg < threshold {config.WEIGHT_THRESHOLD_KG} kg"
+        #     )
         
         return has_change
 

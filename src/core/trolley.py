@@ -78,26 +78,25 @@ class Trolley:
             old_weight: The previous weight reading
             new_weight: The current weight reading
         """
-        # Check for significant weight drop
+        # If we have a scanned barcode, we're adding an item
+        if self.last_scanned_barcode is not None:
+            scan_event = ScanEvent(
+                barcode=self.last_scanned_barcode,
+                timestamp=self.last_scanned_timestamp or time.time(),
+                weight=new_weight
+            )
+            
+            if self._add_item(scan_event):
+                self.last_scanned_barcode = None
+                self.last_scanned_timestamp = None
+            return
+
+        # If no scanned barcode, check for weight drop (item removal)
         if old_weight > new_weight:
             weight_difference = float(old_weight - new_weight)
             logging.info(f"Detected weight drop of {weight_difference:.3f}kg")
             self.pending_removal = True
             logging.info("Please scan the item you want to remove from the cart")
-            return
-
-        if self.last_scanned_barcode is None:
-            return
-
-        scan_event = ScanEvent(
-            barcode=self.last_scanned_barcode,
-            timestamp=self.last_scanned_timestamp or time.time(),
-            weight=new_weight
-        )
-        
-        if self._add_item(scan_event):
-            self.last_scanned_barcode = None
-            self.last_scanned_timestamp = None
 
     def _add_item(self, scan_event: ScanEvent) -> bool:
         """Add an item with its weight."""
