@@ -24,6 +24,9 @@ class MockAPIClient:
         """Initialize mock API client with simulated database."""
         self.api_url = api_url
         self.should_fail = False
+        self.last_weight: Optional[float] = None
+        self.weight_threshold: float = 0.05  # 50g threshold for weight changes
+        self.pending_removal: bool = False  # Flag to indicate weight drop detected
         
         # Initialize store items database
         self.store_items: Dict[str, StoreItem] = {
@@ -75,6 +78,12 @@ class MockAPIClient:
         # Check if item exists in store
         if barcode in self.store_items:
             item = self.store_items[barcode]
+            
+            # If we have a pending removal, check if this is the item to remove
+            if self.pending_removal:
+                self._handle_removal_scan(barcode, item)
+                return True
+                
             logging.info(f"Found item in store: {item.name} (Barcode: {barcode})")
             return True
         else:
@@ -93,23 +102,48 @@ class MockAPIClient:
             return False
             
         store_item = self.store_items[barcode]
+        current_weight = float(weight) if weight is not None else store_item.weight
+        
+        # Check for significant weight drop (item removal)
+        if self.last_weight is not None:
+            weight_difference = self.last_weight - current_weight
+            if weight_difference > self.weight_threshold:
+                logging.info(f"Detected weight drop of {weight_difference:.3f}kg")
+                self.pending_removal = True
+                logging.info("Please scan the item you want to remove from the cart")
+                return True
         
         # Create cart item
         cart_item = CartItem(
             barcode=barcode,
             name=store_item.name,
             price=store_item.price,
-            weight=float(weight) if weight is not None else store_item.weight,
+            weight=current_weight,
             timestamp=timestamp
         )
         
         # Add to cart
         self.cart_items.append(cart_item)
+        self.last_weight = current_weight
         
         # Print cart status
         self._print_cart_status()
         
         return True
+
+    def _handle_removal_scan(self, barcode: str, item: StoreItem) -> None:
+        """Handle scanning of an item for removal."""
+        # Find the item in the cart
+        for i, cart_item in enumerate(self.cart_items):
+            if cart_item.barcode == barcode:
+                # Remove the item
+                removed_item = self.cart_items.pop(i)
+                logging.info(f"Removed item from cart: {removed_item.name}")
+                self.pending_removal = False
+                self._print_cart_status()
+                return
+                
+        logging.warning(f"Item {item.name} not found in cart for removal")
 
     def _print_cart_status(self) -> None:
         """Print current cart status."""
