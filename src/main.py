@@ -48,7 +48,6 @@ def main() -> None:
         # Keep the main thread alive
         while True:
             time.sleep(1)
-            logging.debug("Main loop tick")
 
     except KeyboardInterrupt:
         logging.info("Shutdown requested; stopping trolley.")
