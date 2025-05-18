@@ -2,6 +2,7 @@ import logging
 import sys
 import threading
 import time
+import re
 from typing import Optional, Callable
 
 import serial
@@ -85,9 +86,40 @@ class BarcodeScanner:
                 logging.exception("Console input error; stopping console scan.")
                 break
 
+    def _is_valid_barcode(self, code: str) -> bool:
+        """Check if the scanned code is a valid barcode.
+        
+        Args:
+            code: The scanned code to validate
+            
+        Returns:
+            bool: True if the code is a valid barcode, False otherwise
+        """
+        # Check if it's a URL (QR code)
+        if code.startswith(('http://', 'https://')):
+            logging.debug(f"Ignoring QR code URL: {code}")
+            return False
+            
+        # Check if it's a valid barcode format (numeric or alphanumeric)
+        # Most common barcode formats are numeric or alphanumeric
+        if not re.match(r'^[A-Za-z0-9]+$', code):
+            logging.debug(f"Ignoring invalid barcode format: {code}")
+            return False
+            
+        # Check length (most barcodes are between 8 and 13 characters)
+        if not (8 <= len(code) <= 13):
+            logging.debug(f"Ignoring barcode with invalid length: {code}")
+            return False
+            
+        return True
+
     def _handle_scan(self, barcode: str) -> None:
         """Process a barcode scan."""
         logging.debug(f"Handling barcode scan: {barcode}")
+        
+        if not self._is_valid_barcode(barcode):
+            return
+            
         try:
             event = BarcodeScanEvent(
                 barcode=barcode,
