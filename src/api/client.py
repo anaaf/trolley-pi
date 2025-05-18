@@ -23,7 +23,7 @@ class APIClient:
                 "status_code": 200
             }
             
-            logging.info(f"Register scan success ({resp.status_code}).")
+            logging.info(f"Register scan success ({resp.get('status_code')})")
             return True
         except requests.RequestException:
             logging.exception("Register scan request failed.")
