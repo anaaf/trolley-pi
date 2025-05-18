@@ -81,11 +81,10 @@ class Trolley:
         # Check for significant weight drop
         if old_weight > new_weight:
             weight_difference = float(old_weight - new_weight)
-            if weight_difference > 0.05:  # 50g threshold
-                logging.info(f"Detected weight drop of {weight_difference:.3f}kg")
-                self.pending_removal = True
-                logging.info("Please scan the item you want to remove from the cart")
-                return
+            logging.info(f"Detected weight drop of {weight_difference:.3f}kg")
+            self.pending_removal = True
+            logging.info("Please scan the item you want to remove from the cart")
+            return
 
         if self.last_scanned_barcode is None:
             return
