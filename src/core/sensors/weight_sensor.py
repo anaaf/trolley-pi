@@ -32,7 +32,7 @@ class WeightSensor:
         while not self._stop_event.is_set():
             weight = self.get_weight()
             logging.info(f"Current weight: {weight} kg")
-            if self.has_significant_weight_change() and self._weight_change_callback:
+            if self.has_significant_weight_change(self.last_weight, weight) and self._weight_change_callback:
                 self._weight_change_callback(self.last_weight, weight)
                 self.last_weight = weight
             time.sleep(config.WEIGHT_INTERVAL)
