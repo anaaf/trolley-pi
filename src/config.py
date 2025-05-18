@@ -24,5 +24,6 @@ class Config:
     # Feature Flags
     USE_MOCK: bool = os.getenv("USE_MOCK") == "1"
     USE_CONSOLE_INPUT: bool = True  # listen on stdin for keyboard-wedge scanners
+    USE_MOCK_CLIENT: bool = os.getenv("USE_MOCK_CLIENT") == "1"  # use mock client regardless of USE_MOCK
 
 config = Config() 
