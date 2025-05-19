@@ -1,0 +1,292 @@
+openapi: 3.1.0
+info:
+  title: Title
+  description: Title
+  version: 1.0.0
+servers:
+  - url: 'https'
+
+paths:
+  /barcode:
+    post:
+      summary: Create or Update Barcode
+      description: Creates a new barcode or updates an existing one based on provided parameters.
+      operationId: addBarcode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              $ref: "#/components/schemas/BarcodeRequest"
+      responses:
+        '200':
+          description: Barcode successfully created or updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BarcodeResponse"
+        '400':
+          description: Invalid input data provided.
+        '404':
+          description: Barcode not found (if attempting an update with a non-existent barcode).
+        '500':
+          description: Internal server error.
+  /barcode/{barcodeNumber}:
+    get:
+      summary: get Barcode
+      description: get barcode on provided parameters.
+      operationId: getBarcode
+      parameters:
+        - name: barcodeNumber
+          in: path
+          description: get barcode
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved barcode Details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarcodeResponse'
+
+  /product:
+    post:
+      summary: Create or Update Product
+      description: Creates a new product or updates an existing one based on provided parameters.
+      operationId: addProduct
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              $ref: "#/components/schemas/ProductRequest"
+      responses:
+        '200':
+          description: Successfully created product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+
+  /product/{productUuid}:
+    get:
+      summary: get Product
+      description: get product on provided parameters.
+      operationId: getProduct
+      parameters:
+        - name: productUuid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+
+  /cart:
+    post:
+      summary: Create or update cart
+      description: Create or update cart
+      operationId: eventAtCard
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              $ref: '#/components/schemas/CartRequest'
+      responses:
+        '200':
+          description: Successfully added to cart
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+
+  /cart/{uuid}:
+    get:
+      summary: Retrieve cart
+      description: Retrieve cart
+      operationId: getCart
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully retrieved to cart
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+
+  /cart/barcodeScan:
+      post:
+        summary: Create or update cart
+        description: Create or update cart
+        operationId: barcodeScanOnCart
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/CartRequest'
+        responses:
+          '200':
+            description: Successfully updated
+
+components:
+  schemas:
+    WeightRequestDto:
+      type: object
+      properties:
+        weight:
+          type: number
+          format: BigDecimal
+          example: 12323234
+          description: barcode number
+
+
+    BarcodeRequest:
+      type: object
+      properties:
+        barcodeNumber:
+          type: string
+          example: 12323234
+          description: barcode number
+        productUuid:
+          type: string
+          example: f242acc1-bcbf-11eb-8529-c070bc3a2323
+          description: barcodeReader
+
+    ProductRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: 12323234
+          description: barcode number
+        weight:
+          type: number
+          format: BigDecimal
+          example: f242acc1-bcbf-11eb-8529-c070bc3a2323
+          description: barcodeReader
+        weightUnit:
+          type: string
+          format: weight
+          example: KILOGRAM
+          description: weight units
+        category:
+          type: ProductCategory
+          example: f242acc1-bcbf-11eb-8529-c070bc3a2323
+          description: barcodeReader
+        price:
+          type: number
+          format: BigDecimal
+
+    BarcodeResponse:
+      type: object
+      properties:
+        uuid:
+          type: string
+          description: uuid of a barcode
+        barcodeNumber:
+          type: string
+          description: The unique number of the barcode
+        productUuid:
+          type: string
+          description: The unique identifier for the associated product
+        productWeight:
+          type: number
+          format: BigDecimal
+          description: product weight
+        productName:
+          type: string
+          description: product name
+        productWeightUnit:
+          type: string
+          description: weight
+        price:
+          type: number
+          format: BigDecimal
+
+    ProductResponse:
+      type: object
+      properties:
+        uuid:
+          type: string
+        name:
+          type: string
+          description: The name of the product
+        weight:
+          type: number
+          format: BigDecimal
+          description: The weight of the product
+        category:
+          type: ProductCategory
+
+    CartResponse:
+      type: object
+      properties:
+        cartUuid:
+          type: string
+        totalAmount:
+          type: number
+          format: BigDecimal
+        cartItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/CartItemResponse"
+
+    CartRequest:
+      type: object
+      required:
+        - barcodeNumber
+      properties:
+        cartUuid:
+          type: string
+        trolleyUuid:
+          type: string
+        weight:
+          type: number
+          format: BigDecimal
+        barcodeNumber:
+          type: string
+
+    WeightModel:
+      type: object
+      properties:
+        trolleyUuid:
+          type: string
+        oldWeight:
+          type: number
+          format: BigDecimal
+        newWeight:
+          type: number
+          format: BigDecimal
+
+    CartItemResponse:
+        type: object
+        properties:
+          productName:
+            type: string
+          quantity:
+            type: integer
+            format: int32
+          total:
+            type: number
+            format: BigDecimal
+
+
+

@@ -1,0 +1,218 @@
+openapi: 3.1.0
+info:
+  title: crunch
+  description: Crunch APIs
+  version: 1.0.0
+servers:
+  - url: https://api.crunchapp.com/v1
+    description: Production server
+  - url: http://localhost:8080/v1
+    description: Staging server
+    variables:
+      basePath:
+        default: v1
+
+tags:
+  - name: Users
+    description: Crunch Users
+  - name: Groups
+    description: Groups
+  - name: Group Details
+    description: Group Details
+
+
+paths:
+  /user/{uuid}:
+    get:
+      summary: Get user
+      tags:
+        - Users
+      operationId: getUser
+      parameters:
+        - name: uuid
+          in: path
+          description: User uuid
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                ref: '#/components/schemas/UserResponseModel'
+  /user:
+    post:
+      summary: Create user
+      tags:
+        - Users
+      operationId: createUser
+      requestBody:
+        description: User
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequestModel'
+        required: true
+      responses:
+        200:
+          description: User Added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponseModel'
+
+
+  /group:
+    post:
+      tags:
+        - Groups
+      operationId: createGroup
+      requestBody:
+        description: Group
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupRequestModel'
+        required: true
+      responses:
+        200:
+          description: User Added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupResponseModel'
+
+  /groupDetails:
+    post:
+      tags:
+        - GroupDetail
+      operationId: addGroupMember
+      requestBody:
+        description: Group
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupDetailRequestModel'
+        required: true
+      responses:
+        200:
+          description: User Added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupDetailResponseModel'
+
+
+components:
+  schemas:
+    UserRequestModel:
+      type: object
+      properties:
+        name:
+          type: string
+          example: f242acc1-bcbf-11eb-8529-c070bc3a2323
+          description: Name of a user
+        email:
+          type: string
+          example: f242acc1-bcbf-11eb-8529-c070bc3a2323
+          description: Email of a user
+        phoneNo:
+          type: string
+          example: f242acc1-bcbf-11eb-8529-c070bc3a2323
+          description: Phone number of a user.
+        password:
+          type: string
+          example: f242acc1-bcbf-11eb-8529-c070bc3a2323
+          description: Password of a user
+      required:
+        - name
+        - email
+        - phoneNo
+        - password
+
+
+    UserResponseModel:
+      type: object
+      properties:
+        uuid:
+          type: string
+          example: f242acc1-bcbf-11eb-8529-c070bc3a2323
+          description: This is a system-generated unique identifier of the user (card holder).
+        name:
+          type: string
+          example: johnsmith
+          description: This is a unique identifier of the card holder in the system. We recommend providing a unique name here.
+        email:
+          type: string
+          example: abc@xyz.com
+          description: This is a valid email ID of the card holder.
+        phoneNo:
+          type: string
+          example: +923105581894
+        createdAt:
+          type: string
+          example: '2021-05-15 18:00:00'
+          description: This field contains the date and time when the user was created in the SimpliFi system. Note All the dates in the SimpliFi system are stored and displayed in the following format "yyyy-mm-dd hh:mm:ss”
+
+    GroupRequestModel:
+      type: object
+      properties:
+        name:
+          type: string
+          example: f242acc1-bcbf-11eb-8529-c070bc3a2323
+          description: Name of a group
+        groupDetails:
+           type: array
+           items:
+              $ref: '#/components/schemas/GroupDetailRequestModel'
+      required:
+        - name
+
+    GroupDetailRequestModel:
+      type: object
+      properties:
+        memberUuid:
+          type: string
+          example: f242acc1-bcbf-11eb-8529-c070bc3a2323
+          description: id of a group member
+        groupUuid:
+          type: string
+          example: f242acc1-bcbf-11eb-8529-c070bc3a2323
+      required:
+        - memberUuid
+        - groupUuid
+
+    GroupDetailResponseModel:
+      type: object
+      properties:
+        memberName:
+          type: string
+          example: f242acc1-bcbf-11eb-8529-c070bc3a2323
+          description: Name of a member in a group
+        memberUuid:
+          type: string
+          example: f242acc1-bcbf-11eb-8529-c070bc3a2323
+          description: Name of a member in a group
+        balance:
+          type: decimal
+          example: balance of a group member
+
+    GroupResponseModel:
+      type: object
+      properties:
+        uuid:
+          type: string
+          example: f242acc1-bcbf-11eb-8529-c070bc3a2323
+          description: uuid of a group
+        name:
+          type: string
+          example: f242acc1-bcbf-11eb-8529-c070bc3a2323
+          description: Name of a group
+        groupDetails:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupDetailResponseModel'
+
+
