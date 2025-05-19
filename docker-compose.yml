@@ -1,0 +1,12 @@
+services:
+  scanner:
+    build: .
+    environment:
+      - PYTHONPATH=/app
+    volumes:
+      - .:/app       # so code changes reflect immediately
+    tty: true
+    stdin_open: true    # <-- allows STDIN to stay open
+    command: python -m src.main
+    network_mode: "host"  # Use host network mode to access external IPs
+

@@ -1,0 +1,3 @@
+requests
+pyserial
+# (no need to list RPi.GPIO or hx711 here for mock mode)
