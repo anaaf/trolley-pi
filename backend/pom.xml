@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com</groupId>
-	<artifactId>crunch</artifactId>
+	<artifactId>trolley-backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>crunch</name>
-	<description>crunch</description>
+	<name>trolley-backend</name>
+	<description>trolley-backend</description>
 	<url/>
 	<licenses>
 		<license/>
