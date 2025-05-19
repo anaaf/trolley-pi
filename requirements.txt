@@ -1,3 +1,4 @@
-requests
-pyserial
+flask==3.0.2
+requests==2.31.0
+python-ev3dev2==2.1.0
 # (no need to list RPi.GPIO or hx711 here for mock mode)

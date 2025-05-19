@@ -1,0 +1,26 @@
+{
+  "8964003250232": {
+    "barcode": "8964003250232",
+    "name": "Normega 100",
+    "price": 29.99,
+    "weight": 0.5
+  },
+  "8964003250263": {
+    "barcode": "8964003250263",
+    "name": "Vitamax",
+    "price": 19.99,
+    "weight": 0.3
+  },
+  "8964003250287": {
+    "barcode": "8964003250287",
+    "name": "Protein Bar",
+    "price": 4.99,
+    "weight": 0.1
+  },
+  "8964003250294": {
+    "barcode": "8964003250294",
+    "name": "Energy Drink",
+    "price": 2.99,
+    "weight": 0.25
+  }
+}

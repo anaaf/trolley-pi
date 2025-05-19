@@ -5,7 +5,8 @@ from decimal import Decimal
 @dataclass
 class Config:
     # API Configuration
-    API_URL: str = "http://56.228.26.246:8080/v1/cart/barcodeScan"
+    # API_URL: str = "http://56.228.26.246:8080/v1/cart/barcodeScan"
+    API_URL: str = "http://localhost:5000"
     CART_UUID: str = "da4c6590-b0bf-4ee3-b436-fa868188f520"
     TROLLEY_UUID: str = "0771c388-a12f-4499-afef-cf3401887722"
     
