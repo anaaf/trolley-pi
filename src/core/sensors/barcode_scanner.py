@@ -5,9 +5,13 @@ import time
 import re
 from typing import Optional, Callable
 
-import serial
-
 from src.config import config
+
+if config.USE_MOCK:
+    from src.libs.mocks import Serial as serial
+else:
+    import serial
+
 from src.core.events import BarcodeScanEvent
 
 class BarcodeScanner:
