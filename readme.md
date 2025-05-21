@@ -64,24 +64,8 @@ A Raspberry Pi-based smart shopping trolley system that combines barcode scannin
 
 3. Run the application:
    ```bash
-   python3 src/main.py
+   make run
    ```
-
-### Testing with Dummy Barcodes
-
-You can test the system by passing dummy barcodes through the console input. Here are two ways to do it:
-
-1. Using Docker:
-   ```bash
-   echo "1234567890" | make run-docker
-   ```
-
-2. Using direct Python execution:
-   ```bash
-   echo "1234567890" | python3 src/main.py
-   ```
-
-The system will process the barcode and attempt to send it to the API endpoint. Make sure you have configured the correct API_URL and other environment variables before testing.
 
 ### Simulation Mode
 
@@ -102,7 +86,7 @@ The system includes provider scripts that allow you to simulate barcode scanning
 
 1. Run the barcode provider script:
    ```bash
-   python3 src/libs/mocks/barcode_provider.py
+   make run-barcode-simulator
    ```
 
 2. Enter barcodes when prompted. The script will:
@@ -121,7 +105,7 @@ Enter barcode (or 'q' to quit): q
 
 1. Run the weight provider script:
    ```bash
-   python3 src/libs/mocks/weight_provider.py
+   make run-weight-simulator
    ```
 
 2. Enter weight values when prompted. The script will:
