@@ -84,7 +84,7 @@ The system includes provider scripts that allow you to simulate barcode scanning
 
 #### Simulating Barcode Scans
 
-1. Run the barcode provider script:
+1. Run the barcode provider script in a different terminal:
    ```bash
    make run-barcode-simulator
    ```
@@ -103,7 +103,7 @@ Enter barcode (or 'q' to quit): q
 
 #### Simulating Weight Measurements
 
-1. Run the weight provider script:
+1. Run the weight provider script in a different terminal:
    ```bash
    make run-weight-simulator
    ```
