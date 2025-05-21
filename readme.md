@@ -83,6 +83,61 @@ You can test the system by passing dummy barcodes through the console input. Her
 
 The system will process the barcode and attempt to send it to the API endpoint. Make sure you have configured the correct API_URL and other environment variables before testing.
 
+### Simulation Mode
+
+The system supports a simulation mode that allows you to test both barcode scanning and weight measurements without physical hardware. To enable simulation mode:
+
+1) Run the application:
+   ```bash
+   make run-with-mock
+   ```
+
+Note: In simulation mode, all hardware dependencies are mocked, making it perfect for development and testing without physical hardware.
+
+### Using Provider Scripts for Simulation
+
+The system includes provider scripts that allow you to simulate barcode scanning and weight measurements through named pipes. These scripts are located in `src/libs/mocks/`.
+
+#### Simulating Barcode Scans
+
+1. Run the barcode provider script:
+   ```bash
+   python3 src/libs/mocks/barcode_provider.py
+   ```
+
+2. Enter barcodes when prompted. The script will:
+   - Accept barcode input from the console
+   - Send the barcode through a named pipe (`/tmp/barcode_pipe`)
+   - Continue accepting input until you press 'q' or Ctrl+C
+
+Example:
+```bash
+Enter barcode (or 'q' to quit): 1234567890
+Enter barcode (or 'q' to quit): 9876543210
+Enter barcode (or 'q' to quit): q
+```
+
+#### Simulating Weight Measurements
+
+1. Run the weight provider script:
+   ```bash
+   python3 src/libs/mocks/weight_provider.py
+   ```
+
+2. Enter weight values when prompted. The script will:
+   - Accept weight input in kilograms
+   - Send the weight through a named pipe (`/tmp/weight_pipe`)
+   - Continue accepting input until you press 'q' or Ctrl+C
+
+Example:
+```bash
+Enter weight in kg (or 'q' to quit): 1.5
+Enter weight in kg (or 'q' to quit): 2.3
+Enter weight in kg (or 'q' to quit): q
+```
+
+Note: Make sure the main application is running in mock mode (`USE_MOCK=1`) when using these provider scripts.
+
 ## Configuration
 
 The following environment variables can be configured:
