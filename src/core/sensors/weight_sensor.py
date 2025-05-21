@@ -53,9 +53,9 @@ class WeightSensor:
         self.hx.set_scale_ratio(config.SCALE_RATIO)
 
     def _initialize_weight(self) -> None:
-        """Initialize the last weight reading."""
-        self.last_weight = self.get_weight()
-        logging.info(f"Initial weight: {self.last_weight} kg")
+        """Initialize the last weight reading to 0."""
+        self.last_weight = Decimal('0')
+        logging.info(f"Initial weight set to: {self.last_weight} kg")
 
     def get_weight(self) -> Decimal:
         """Get current weight in kg with 3 decimal places."""

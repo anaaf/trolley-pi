@@ -27,7 +27,8 @@ class Trolley:
         self.event_thread: Optional[threading.Thread] = None
         self.last_scanned_barcode: Optional[str] = None
         self.last_scanned_timestamp: Optional[float] = None
-        self.pending_removal: bool = False  # Flag to indicate weight drop detected
+        self.pending_removal: bool = False 
+        self.weight_after_removal = 0; # Flag to indicate weight drop detected
 
     def start(self):
         """Start the trolley and all its components."""
@@ -49,6 +50,7 @@ class Trolley:
                 cart_uuid=self.cart_uuid,
                 trolley_uuid=self.trolley_uuid,
                 barcode=event.barcode,
+                weight=self.weight_after_removal,
                 timestamp=event.timestamp
             ):
                 self.pending_removal = False
@@ -84,6 +86,7 @@ class Trolley:
             weight_difference = float(old_weight - new_weight)
             logging.info(f"Detected weight drop of {weight_difference:.3f}kg")
             self.pending_removal = True
+            self.weight_after_removal = new_weight
             logging.info("Please scan the item you want to remove from the cart")
             return
 
